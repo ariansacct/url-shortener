@@ -57,28 +57,63 @@ class MyWebService(object):
             query_string = 'INSERT INTO MAPPINGS VALUES (?, ?);'
             print(query_string)
             params = (original_link, random_string)
+            print("params are: " + str(params))
             cursor.execute(query_string, params)
+            self.conn.commit()
             print("Insertion into the database completed.")
             self.print_database()
 
+    def attempt_to_retrieve(self, original_link):
+        if self.mode == 'memory':
+            if original_link in self.link_map:
+                return self.link_map[original_link]
+        elif self.mode == 'database':
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT random_string FROM MAPPINGS WHERE original_link = "' + original_link + '";')
+            fetched_list = cursor.fetchall()
+            if len(fetched_list) == 0:
+                random_string = None
+            else:
+                random_string = fetched_list[0][0]
+            return random_string
+
+    def is_duplicate(self, random_string):
+        if self.mode == 'memory':
+            if random_string in self.link_map.values():
+                return True
+        elif self.mode == 'database':
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT random_string FROM MAPPINGS;')
+            fetched_list = cursor.fetchall()
+            for tple in fetched_list:
+                if random_string == tple[0]:
+                    return True
+            return False
+
+
     @cherrypy.expose
     def shorten(self, original_link):
-        random_string = self.generate_random_string()
-        while random_string in self.link_map.values():
+        new_entry = False
+        random_string = self.attempt_to_retrieve(original_link)
+
+        if random_string is None:
             random_string = self.generate_random_string()
+            while self.is_duplicate(random_string):
+                print('Wow! This random string was a duplicate. Generating another one...')
+                random_string = self.generate_random_string()
+            new_entry = True
 
-        self.store_mapping(original_link, random_string)
-        self.link_map[original_link] = random_string
-
+        if new_entry == True:
+            self.store_mapping(original_link, random_string)
         shortened_link = "shorten.er/" + random_string
         return """
-                        <head>
-                   <link href="/static/css/style.css" rel="stylesheet">
-                </head>
-                <body>
-                <h2>The shortened link is: {shortened_link}</h2>
-                </body>
-                """.format(shortened_link = shortened_link)
+                            <head>
+                       <link href="/static/css/style.css" rel="stylesheet">
+                    </head>
+                    <body>
+                    <h2>The shortened link is: {shortened_link}</h2>
+                    </body>
+                    """.format(shortened_link = shortened_link)
 
     @cherrypy.expose
     def retrieve(self, shortened_link):
