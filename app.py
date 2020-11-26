@@ -39,6 +39,7 @@ class MyWebService(object):
    <form method="POST" action="retrieve">
    <input type="text" name="shortened_link" class="textField" placeholder="Shortened link" size="50"/>
    <button type="submit">Retrieve!</button>
+   </form>
 </body>
 """
 
@@ -67,9 +68,6 @@ c.execute("INSERT INTO People VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
             print("Insertion into the database completed.")
             self.print_database()
 
-
-
-
     @cherrypy.expose
     def shorten(self, original_link):
         random_string = self.generate_random_string()
@@ -80,7 +78,14 @@ c.execute("INSERT INTO People VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
         self.link_map[original_link] = random_string
 
         shortened_link = "shorten.er/" + random_string
-        return shortened_link
+        return """
+                        <head>
+                   <link href="/static/css/style.css" rel="stylesheet">
+                </head>
+                <body>
+                <h2>The shortened link is: {shortened_link}</h2>
+                </body>
+                """.format(shortened_link = shortened_link)
 
 
     # test retrieval with this: an.ggoh -> shorten.er/nokhba
@@ -97,8 +102,14 @@ c.execute("INSERT INTO People VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
             cursor = self.conn.cursor()
             cursor.execute('SELECT * FROM MAPPINGS WHERE random_string = "' + random_string + '";')
             original_link = cursor.fetchall()[0][0]
-            print('KIR: ' + original_link)
-        return original_link
+        return """
+                <head>
+           <link href="/static/css/style.css" rel="stylesheet">
+        </head>
+        <body>
+        <h2>The original link is: {original_link}</h2>
+        </body>
+        """.format(original_link = original_link)
 
 
 if __name__ == '__main__':
