@@ -54,13 +54,6 @@ class MyWebService(object):
             print("Insertion into the memory completed.")
         elif self.mode == 'database':
             cursor = self.conn.cursor()
-            '''
-            params = (userName, password, confirmPassword, firstName, lastName,
-          companyName, email, phoneNumber, addressLine1, addressLine2, 
-          addressLine3, zipCode, province, country, regDate)
-
-c.execute("INSERT INTO People VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", params)
-            '''
             query_string = 'INSERT INTO MAPPINGS VALUES (?, ?);'
             print(query_string)
             params = (original_link, random_string)
@@ -87,12 +80,8 @@ c.execute("INSERT INTO People VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
                 </body>
                 """.format(shortened_link = shortened_link)
 
-
-    # test retrieval with this: an.ggoh -> shorten.er/nokhba
-
     @cherrypy.expose
     def retrieve(self, shortened_link):
-        # shorten.er/hqgjbe
         random_string = shortened_link.split('/')[1]
         if self.mode == 'memory':
             if random_string not in self.link_map.inverse:
