@@ -5,17 +5,21 @@ import string
 import os
 from bidict import bidict
 import sqlite3
+import configparser
 
 
 class MyWebService(object):
 
-    def __init__(self, mode):
+    def __init__(self):
         self.link_map = bidict()
         self.db_file = 'database.db'
-        self.mode = mode
+        config = configparser.ConfigParser()
+        config.read('config.properties')
+        self.mode = config.get("storage", "type")
         self.conn = sqlite3.connect(self.db_file, check_same_thread = False, isolation_level = None)
         cursor = self.conn.cursor()
         cursor.execute('CREATE TABLE IF NOT EXISTS MAPPINGS (original_link TEXT, random_string TEXT);')
+        print('Initialized the program with storage type ' + self.mode + '.')
 
     def generate_random_string(self, length = 6):
         letters = string.ascii_lowercase
@@ -150,8 +154,7 @@ if __name__ == '__main__':
             'tools.staticdir.dir': './public'
         }
     }
-    # mode: either 'memory' or 'database'
-    my_web_service = MyWebService('database')
+    my_web_service = MyWebService()
     my_web_service.print_database()
     cherrypy.quickstart(my_web_service, '/', conf)
 
