@@ -53,5 +53,15 @@ python app.py
 In your browser, navigate to `localhost:8080` and insert a link
 to shorten or retrieve the original.
 
+## Limitations and next steps
+- More comprehensive error handling for malformatted URLs. It is
+currently assumed the user does not intend to break the application.
+
+- Currently up to 308915776 URLs can be supported.
+
+- The look and CSS style can be greatly improved. JavaScript can be used.
+
+- More storage types can be added, for example, a more complex database system or type (including NoSQLs) and text files. 
+
 ## Time spent
 I spent about 4 hours on this application (including development, testing, and documentation), in multiple sittings.
