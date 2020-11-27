@@ -152,27 +152,53 @@ class MyWebService(object):
 
     '''
     This method handles a retrieval request for a URL. It first extracts the random string from the shortened URL. The
-    corresponding URL is then retrieved from the specified storage type. If the URL is not found an error message is shown.
+    corresponding URL is then retrieved from the specified storage type. The URL must be of the form: 'shorten.er/<random_string>`
+    If the URL is not found an error message is shown.
     '''
     @cherrypy.expose
     def retrieve(self, shortened_link):
+        '''
+        It is assumed the URL is of the form `shorten.er/<random_string>`; the system does not do error handling
+        for URLs outside this format.
+        '''
         random_string = shortened_link.split('/')[1]
+        original_link = None
         if self.mode == 'memory':
             if random_string not in self.link_map.inverse:
-                return "Link not found in the system!"
+                return """
+                    <head>
+               <link href="/static/css/style.css" rel="stylesheet">
+            </head>
+            <body>
+            <h2>Link not found in the system!</h2>
+            </body>
+            """
             original_link = self.link_map.inverse[random_string]
         elif self.mode == 'database':
             cursor = self.conn.cursor()
             cursor.execute('SELECT * FROM MAPPINGS WHERE random_string = "' + random_string + '";')
-            original_link = cursor.fetchall()[0][0]
+            fetched_list = cursor.fetchall()
+            if len(fetched_list) == 0:
+                original_link = None
+            else:
+                original_link = fetched_list[0][0]
+        if original_link is not None:
+            return """
+                    <head>
+               <link href="/static/css/style.css" rel="stylesheet">
+            </head>
+            <body>
+            <h2>The original link is: {original_link}</h2>
+            </body>
+            """.format(original_link = original_link)
         return """
-                <head>
-           <link href="/static/css/style.css" rel="stylesheet">
-        </head>
-        <body>
-        <h2>The original link is: {original_link}</h2>
-        </body>
-        """.format(original_link = original_link)
+                    <head>
+               <link href="/static/css/style.css" rel="stylesheet">
+            </head>
+            <body>
+            <h2>Link not found in the system!</h2>
+            </body>
+            """
 
 
 if __name__ == '__main__':
